@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "my_first_app (macOS)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "macos"
+        },
+        {
+            "name": "my_first_app (Chrome)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "chrome"
+        },
+        {
+            "name": "my_first_app (iOS Simulator)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "iPhone"
+        }
+    ]
+}

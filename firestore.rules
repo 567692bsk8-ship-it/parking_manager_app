@@ -1,0 +1,89 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- ユーティリティ関数 ---
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // 変数(let)を使わず、existsとgetを一行で判定するように修正
+    function getRole(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid)) 
+        ? get(/databases/$(database)/documents/users/$(uid)).data.role 
+        : "none";
+    }
+
+    function isPrivileged() {
+      return isAuthenticated() && 
+             (getRole(request.auth.uid) == 'admin' || 
+              getRole(request.auth.uid) == 'dev');
+    }
+
+    // --- コレクション別のアクセス制御 ---
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || (isAuthenticated() && resource.data.role == 'admin');
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isPrivileged();
+      allow delete: if isPrivileged();
+    }
+
+    match /parking_lots/{lotId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && (
+        request.resource.data.manager_id == request.auth.uid || 
+        request.resource.data.is_guest == true ||
+        isPrivileged()
+      );
+      allow update, delete: if isPrivileged() || (isAuthenticated() && (resource.data.manager_id == request.auth.uid || resource.data.is_guest == true));
+    }
+
+    match /slots/{slotId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && (
+        request.resource.data.manager_id == request.auth.uid || 
+        request.resource.data.is_guest == true ||
+        isPrivileged()
+      );
+      allow update: if isAuthenticated() && (
+        isPrivileged() || 
+        resource.data.manager_id == request.auth.uid ||
+        resource.data.is_guest == true ||
+        (resource.data.status == 'available' && request.resource.data.status == 'contracted')
+      );
+      allow delete: if isPrivileged() || (isAuthenticated() && (resource.data.manager_id == request.auth.uid || resource.data.is_guest == true));
+    }
+
+    match /contracts/{contractId} {
+      allow read: if isAuthenticated() && (
+        isPrivileged() || 
+        resource.data.manager_id == request.auth.uid || 
+        resource.data.user_id == request.auth.uid ||
+        resource.data.is_guest == true
+      );
+      allow create: if isAuthenticated() && (
+        isPrivileged() || 
+        request.resource.data.manager_id == request.auth.uid || 
+        request.resource.data.user_id == request.auth.uid ||
+        request.resource.data.is_guest == true
+      );
+      allow update, delete: if isPrivileged() || (isAuthenticated() && (resource.data.manager_id == request.auth.uid || resource.data.is_guest == true));
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isPrivileged() || (isAuthenticated() && (resource.data.user_id == request.auth.uid || resource.data.manager_id == request.auth.uid || resource.data.is_guest == true));
+      allow write: if isPrivileged() || (isAuthenticated() && (request.resource.data.manager_id == request.auth.uid || request.resource.data.is_guest == true));
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

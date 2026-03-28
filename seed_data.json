@@ -1,0 +1,45 @@
+{
+    "parking_lots": {
+        "lot_001": {
+            "name": "第一中央駐車場",
+            "address": "長野県飯田市松尾",
+            "total_slots": 10
+        }
+    },
+    "contracts": [
+        {
+            "user_name": "川上 圭太",
+            "user_id": "user_001",
+            "phone_number": "090-1234-5678",
+            "address": "長野県飯田市松尾123-4",
+            "slot_number": "001",
+            "monthly_fee": 3000,
+            "start_date": "2024-01-01T00:00:00Z",
+            "end_date": "2039-12-31T00:00:00Z",
+            "car_maker": "トヨタ",
+            "car_model": "カローラ",
+            "car_color": "赤",
+            "car_number": "1234",
+            "lot_id": "lot_001",
+            "payment_day": 25,
+            "payment_method": "振込",
+            "status": "active"
+        }
+    ],
+    "payments": [
+        {
+            "user_name": "川上 圭太",
+            "amount": 3000,
+            "target_month": "2024-02",
+            "status": "paid",
+            "paid_at": "2024-02-01T10:00:00Z"
+        },
+        {
+            "user_name": "川上 圭太",
+            "amount": 3000,
+            "target_month": "2024-03",
+            "status": "unpaid",
+            "paid_at": null
+        }
+    ]
+}
